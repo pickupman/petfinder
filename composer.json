@@ -1,0 +1,19 @@
+{
+    "name": "pickupman/petfinder",
+    "description": "PHP Wrapper to access Petfinder.com API",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Joe McFrederick",
+            "email": "jomcfred@gmail.com"
+        }
+    ],
+    "require": {
+
+    },
+    "autoload": {
+        "psr-0": {
+            "Pickupman\\Petfinder": "src/"
+        }
+    }
+}
