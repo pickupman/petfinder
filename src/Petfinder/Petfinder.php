@@ -1,5 +1,6 @@
 <?php
-namespace Pickupman\Petfinder;
+namespace Pickupman;
+
 /**
  * PHP class for communicating with Petfinder.com API
  * requires signing up for a free API key from Petfinder website
@@ -71,7 +72,7 @@ namespace Pickupman\Petfinder;
 			$xmlResponse = $this->_curl($url);
 
 			//Create SimpleXML
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			//Set cookie with successful token
 			if($xml->header->status->code = '100')
@@ -132,7 +133,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = $xml->header->status->code;
 
@@ -160,7 +161,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = (string)$xml->header->status->code;
 			$i=0;
@@ -231,7 +232,7 @@ namespace Pickupman\Petfinder;
 			$xmlResponse = $this->_curl($url);
 
 			//Create SimpleXML
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 
 			//Assign element to array
@@ -299,7 +300,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = $xml->header->status->code;
 			//Assign element to array
@@ -366,7 +367,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = (string)$xml->header->status->code;
 
@@ -408,7 +409,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = (string) $xml->header->status->code;
 			$data['id'] = (string) $xml->shelter->id;
@@ -442,7 +443,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = (string)$xml->header->status->code;
 
@@ -514,7 +515,7 @@ namespace Pickupman\Petfinder;
 
 			$xmlResponse = $this->_curl($url);
 
-			$xml = new SimpleXMLElement($xmlResponse);
+			$xml = new \SimpleXMLElement($xmlResponse);
 
 			$data['code'] = (string)$xml->header->status->code;
 

@@ -12,8 +12,8 @@
 
     },
     "autoload": {
-        "psr-0": {
-            "Pickupman\\Petfinder": "src/"
+        "psr-4": {
+            "Pickupman\\Petfinder\\": "/src"
         }
     }
 }
