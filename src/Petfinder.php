@@ -1,5 +1,5 @@
 <?php
-namespace Pickupman;
+namespace Pickupman\Petfinder;
 
 /**
  * PHP class for communicating with Petfinder.com API
