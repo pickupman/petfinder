@@ -3,6 +3,7 @@ namespace Pickupman\Petfinder;
 
 use Pickupman\Petfinder\Cookie;
 use Pickupman\Petfinder\XMLParser;
+use Pickupman\Petfinder\Request;
 
 /**
  * PHP class for communicating with Petfinder.com API
@@ -41,14 +42,16 @@ class Petfinder
 
     var $XMLParser;
     var $cookie;
+	var $request;
 
 
-	public function __construct($options = array(), XMLParser $XMLParser = null, Cookie $cookie = null)
+	public function __construct($options = array(), XMLParser $XMLParser = null, Cookie $cookie = null, Request $request = null)
 	{
         $this->cache_path = dirname(__FILE__) . '/cache_files/';
 
         $this->XMLParser = is_null($XMLParser) ? new XMLParser() : $XMLParser;
 		$this->cookie    = is_null($cookie) ? new Cookie() : $cookie;
+		$this->request  = is_null($request) ? new Request() : $request;
 
         if ( ! empty($options) ) $this->set($options);
 
@@ -670,7 +673,7 @@ class Petfinder
 	*	@returns string xml
 	*	@access private
 	*/
-	function _curl($url)
+	private function _curl($url)
 	{
 		$xml = '';
 
@@ -682,21 +685,7 @@ class Petfinder
                return $cache_response;
         }
 
-
-		// create a new cURL resource
-		$ch = curl_init();
-
-		// set URL and other appropriate options
-		curl_setopt($ch, CURLOPT_URL, $this->api_url.$url);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-
-		// grab URL and pass it to the browser
-		$xml = curl_exec($ch);
-
-		// close cURL resource, and free up system resources
-		curl_close($ch);
+		$xml = $this->request->get($this->api_url.$url);
 
         //Make sure this data to write
         if( strlen($xml) > 0)
