@@ -52,8 +52,6 @@ class Petfinder
 
         if ( ! empty($options) ) $this->set($options);
 
-		if ( ! empty($this->api_key) AND ! empty($this->api_key)) $this->getToken($this->cookie);
-
 	}
 
 	/**
@@ -166,7 +164,9 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);
+
+		if ( ! $xml) return false;
 
 		$data['code'] = (string)$xml->header->status->code;
 
@@ -194,7 +194,7 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 		$data['code'] = (string)$xml->header->status->code;
 		$i=0;
@@ -259,7 +259,6 @@ class Petfinder
 	function petGet()
 	{
 		//Create URL string
-		//$urlString = $this->_urlString(array('id'=>$id));
 		$urlString = $this->_urlString();
 
 		$url = 'pet.get?'.$urlString;
@@ -267,7 +266,7 @@ class Petfinder
 		$xmlResponse = $this->_curl($url);
 
 		//Create SimpleXML
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 
 		//Assign element to array
@@ -336,7 +335,7 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 		$data['code'] = $xml->header->status->code;
 
@@ -406,7 +405,7 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 		$data['code'] = (string)$xml->header->status->code;
 
@@ -451,7 +450,7 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 		return array(
 			'code'      => (string) $xml->header->status->code,
@@ -485,7 +484,7 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 		$data['code'] = (string)$xml->header->status->code;
 
@@ -559,7 +558,7 @@ class Petfinder
 
 		$xmlResponse = $this->_curl($url);
 
-		$xml = new \SimpleXMLElement($xmlResponse);
+		$xml = $this->XMLParser->parse($xmlResponse);;
 
 		$data['code'] = (string)$xml->header->status->code;
 
@@ -603,14 +602,10 @@ class Petfinder
 	/**
 	*	Create a url string for a request
 	*	@param none
-	*	@returns string a url string
+	*	@return string a url string
 	*/
 	function _urlString()
 	{
-
-		if ( ! $this->cookie->get('petToken') ) {
-			throw new \Exception('Invalid token');
-		}
 
 		$str = 'key=' . $this->api_key;
 
@@ -656,7 +651,9 @@ class Petfinder
 
         $this->cache_url = $str;
 
-		$str .= '&token=' . $_COOKIE['petToken'];
+		if ($this->cookie->get('petToken') ) {
+			$str .= '&token=' . $_COOKIE['petToken'];
+		}
 
 		//Generate signature
 		$sig = $this->_signature($str);

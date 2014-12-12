@@ -13,6 +13,7 @@ class PetfinderTest extends \PHPUnit_Framework_TestCase {
 	public function __construct() {
 		$this->cookie    = new Cookie();
 		$this->xmlparser = new XMLParser();
+		$xml = json_decode(json_encode(array('header' => array('status' => array('code' => 200)), 'auth' => array('token' => md5('string'), 'expiresString' => strtotime("+30 minutes")))));
 	}
 
 	protected function tearDown() {
@@ -20,14 +21,8 @@ class PetfinderTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testPassingArgsToConstruct() {
-		$xml = json_decode(json_encode(array('header' => array('status' => array('code' => 200)), 'auth' => array('token' => md5('string'), 'expiresString' => strtotime("+30 minutes")))));
 
-		$xmlparser = \Mockery::mock('Pickupman\Petfinder\XMLParser');
-		$xmlparser->shouldReceive('parse')
-			->once()
-			->andReturn($xml);
-
-		$petfinder = new Petfinder(array('api_key' => 'key', 'api_pass' => 'pass'), $xmlparser, $this->cookie);
+		$petfinder = new Petfinder(array('api_key' => 'key', 'api_pass' => 'pass'));
 
 		$this->assertEquals('key', $petfinder->api_key);
 		$this->assertEquals('pass', $petfinder->api_pass);
@@ -39,17 +34,17 @@ class PetfinderTest extends \PHPUnit_Framework_TestCase {
 		$this->assertFalse($petfinder->set('string'));
 	}
 
+	public function testSetArray() {
+		$petfinder = new Petfinder();
+
+		$this->assertTrue($petfinder->set(array('api_key' => 'api_key')));
+	}
+
 	public function testInitialize() {
 		$petfinder = new Petfinder();
 		$petfinder->initialize(array('format' => 'xml'));
 
 		$this->assertEquals('xml', $petfinder->format);
-	}
-
-	public function testSetArray() {
-		$petfinder = new Petfinder();
-
-		$this->assertTrue($petfinder->set(array('api_key' => 'api_key')));
 	}
 
 	public function testGetToken() {
@@ -63,13 +58,26 @@ class PetfinderTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(true, $petfinder->getToken($cookie));
 	}
 
-	public function testGetTokenWithNewCookie() {
-		$cookie = \Mockery::mock('Pickupman\Petfinder\Cookie');
-		//$cookie->shouldReceive()
-	}
-
 	public function testBreedList() {
+		$xml = new \SimpleXMLElement('<petfinder></petfinder>');
+		$header = $xml->addChild('header');
+		$status = $header->addChild('status');
+		$code   = $status->addChild('code', 100);
 
+		$breeds = $xml->addChild('breeds');
+		$breeds->addChild('breed', 'German Shepherd');
+		$breeds->addChild('breed', 'Golden Retriever');
+
+		$xmlparser = \Mockery::mock('Pickupman\Petfinder\XMLParser');
+		$xmlparser->shouldReceive('parse')
+			->once()
+			->andReturn(simplexml_load_string($xml->asXML()));
+
+		$petfinder = new Petfinder(array(), $xmlparser);
+		$data = $petfinder->breedList('dog');
+
+		$this->assertEquals(true, is_array($data));
+		$this->assertEquals(100, $data['code']);
 	}
 
 	public function testPetFind() {
