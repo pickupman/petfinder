@@ -1,6 +1,9 @@
 <?php
 namespace Pickupman\Petfinder;
 
+use Pickupman\Petfinder\Cookie;
+use Pickupman\Petfinder\XMLParser;
+
 /**
  * PHP class for communicating with Petfinder.com API
  * requires signing up for a free API key from Petfinder website
@@ -15,7 +18,7 @@ class Petfinder
 {
 	var $api_key;
 	var $api_pass;
-	var $api_url;
+	var $api_url = 'http://api.petfinder.com/';
 	var $token;
 	var $format    = FALSE;
 	var $animal    = FALSE;
@@ -36,14 +39,21 @@ class Petfinder
     var $cache_path;
     var $cache_url;
 
+    var $XMLParser;
+    var $cookie;
 
-	public function __construct($options = array())
+
+	public function __construct($options = array(), XMLParser $XMLParser = null, Cookie $cookie = null)
 	{
-		$this->api_url = 'http://api.petfinder.com/';
         $this->cache_path = dirname(__FILE__) . '/cache_files/';
 
-		$this->set($options);
-		$this->getToken();
+        $this->XMLParser = is_null($XMLParser) ? new XMLParser() : $XMLParser;
+		$this->cookie    = is_null($cookie) ? new Cookie() : $cookie;
+
+        if ( ! empty($options) ) $this->set($options);
+
+		if ( ! empty($this->api_key) AND ! empty($this->api_key)) $this->getToken($this->cookie);
+
 	}
 
 	/**
@@ -65,31 +75,31 @@ class Petfinder
 	/**
 	*	Get Security Token
 	*/
-	function getToken()
+	function getToken(Cookie $cookie = null)
 	{
+
+		$this->cookie = is_null($cookie) ? new Cookie() : $cookie;
+
 		$sig = md5($this->api_pass . 'key=' . $this->api_key);
 		$url = 'auth.getToken?key=' . $this->api_key . '&sig=' . $sig;
 
 		// Check for existing cookie
-		if ( isset($_COOKIE['petToken']) ) {
+		if ( $this->cookie->get('petToken') ) {
 			return true;
 		}
 
 		$xmlResponse = $this->_curl($url);
 
-		libxml_use_internal_errors(true);
+		//Create SimpleXML
+		$xml = $this->XMLParser->parse($xmlResponse);
 
-		try {
-			//Create SimpleXML
-			$xml = new \SimpleXMLElement($xmlResponse);
-		} catch (\Exception $e) {
-			return $e->getMessage();
-		}
+		// Need a well formed xml response before we continue
+		if ( ! $xml) return false;
 
 		//Set cookie with successful token
 		if($xml->header->status->code = '100')
 		{
-			setcookie('petToken',$xml->auth->token,strtotime($xml->auth->expiresString));
+			$this->cookie->set('petToken',$xml->auth->token,strtotime($xml->auth->expiresString));
 			return true;
 		}
 
@@ -136,11 +146,20 @@ class Petfinder
 
 	/**
 	*	Retrieve breeds for a animal
-	*	@param none
+	*	@param string (barnyard, bird, cat, dog, horse, pig, reptile, smallfurry)
 	*	@returns array
 	*/
-	function breedList()
+	function breedList($animal = FALSE)
 	{
+		// Make sure we have a animal as a property or passed as a parameter
+		if ( ! $this->animal AND ! $animal) {
+			return false;
+		}
+
+		// Not set as a property but passed as a parameter
+		if ( ! $this->animal AND $animal) {
+			$this->animal = $animal;
+		}
 
 		$urlString = $this->_urlString();
 		$url = 'breed.list?'.$urlString;
@@ -588,7 +607,8 @@ class Petfinder
 	*/
 	function _urlString()
 	{
-		if ( ! isset($_COOKIE['petToken']) ) {
+
+		if ( ! $this->cookie->get('petToken') ) {
 			throw new \Exception('Invalid token');
 		}
 
